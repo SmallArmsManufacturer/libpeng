@@ -12,3 +12,4 @@ namespace Peng
 }
 
 std::ostream &operator<<(std::ostream &stream, const Peng::Vertex &vertex);
+std::istream &operator>>(std::istream &stream, Peng::Vertex &vertex);

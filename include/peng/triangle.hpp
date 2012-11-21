@@ -11,3 +11,4 @@ namespace Peng
 }
 
 std::ostream &operator<<(std::ostream &stream, const Peng::Triangle &triangle);
+std::istream &operator>>(std::istream &stream, Peng::Triangle &triangle);

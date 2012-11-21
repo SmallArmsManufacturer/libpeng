@@ -2,6 +2,9 @@
 
 namespace Peng
 {
-	const uint32_t MAGIC_NUMBER = 0xA7909FF0;
-	const uint16_t VERSION = 1;
+	typedef uint32_t magic_number_t;
+	typedef uint16_t version_t;
+
+	const magic_number_t MAGIC_NUMBER = 0xA7909FF0;
+	const version_t VERSION = 1;
 }
