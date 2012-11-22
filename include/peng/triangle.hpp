@@ -6,7 +6,7 @@ namespace Peng
 {
 	struct Triangle
 	{
-		int indices[3];
+		uint32_t indices[3];
 	};
 }
 
