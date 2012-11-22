@@ -6,8 +6,6 @@
 #include "peng/mesh.hpp"
 #include "peng/version.hpp"
 
-static_assert(sizeof(float) == 4, "Expected float datatype to be 4 bytes long.");
-
 using namespace std;
 
 namespace {
