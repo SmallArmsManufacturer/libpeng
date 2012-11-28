@@ -1,5 +1,7 @@
-#define FBXSDK_NEW_API
-#include <fbxsdk.h>
+#include <assimp.hpp>
+#include <aiMesh.h>
+#include <aiScene.h>
+#include <aiPostProcess.h>
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -7,20 +9,6 @@
 #include "peng/version.hpp"
 
 using namespace std;
-
-namespace {
-    vector<FbxMesh *> meshes;
-    
-    void ProcessNode(FbxNode *node)
-    {
-        if (node->GetNodeAttribute() && node->GetNodeAttribute()->GetAttributeType() == FbxNodeAttribute::eMesh) {
-            meshes.push_back((FbxMesh *) node->GetNodeAttribute());
-        }
-        if (node->GetChildCount() > 0)
-            for (int i = 0; i < node->GetChildCount(); i++)
-                ProcessNode(node->GetChild(i));
-    }
-}
 
 int main(int argc, const char *argv[])
 {
@@ -33,69 +21,50 @@ int main(int argc, const char *argv[])
     const char *input = argv[1];
     const char *output = argv[2];
     
-    FbxManager *manager = FbxManager::Create();
-    
-    FbxIOSettings *ios = FbxIOSettings::Create(manager, IOSROOT);
-    manager->SetIOSettings(ios);
-    
-    FbxImporter *importer = FbxImporter::Create(manager, "");
-    if (!importer->Initialize(input, -1, manager->GetIOSettings())) {
-        cerr << importer->GetLastErrorString() << endl;
-        return EXIT_FAILURE;
-    }
-    
-    FbxScene *scene = FbxScene::Create(manager, "scene");
-    importer->Import(scene);
-    importer->Destroy();
-    
-    ProcessNode(scene->GetRootNode());
+    Assimp::Importer importer;
+    const aiScene* scene = importer.ReadFile(input, aiProcess_Triangulate | aiProcess_JoinIdenticalVertices);
 
-    if (meshes.size() != 1)
-    {
-        cerr << "Error: This model contains " << meshes.size() << " meshes. Currently only models with exactly 1 mesh are supported." << endl;
+    if (!scene) {
+        cerr << "Error: Unable to load geometry from " << input << endl;
         return EXIT_FAILURE;
     }
-    
+
     Peng::Mesh mesh;
-    FbxMesh *fbxMesh = meshes[0];
 
-    // Triangulate the mesh if necessary
-    if (!fbxMesh->IsTriangleMesh())
-    {
-        FbxGeometryConverter converter ( manager );
-        fbxMesh = converter.TriangulateMesh ( fbxMesh );
+    if (scene->mNumMeshes != 1) {
+        cerr << "Error: Only scenes with exactly 1 mesh are supported." << endl;
+        return EXIT_FAILURE;
     }
 
-    int num_triangles = fbxMesh->GetPolygonCount();
-    FbxVector4 *fbxControlPoints = fbxMesh->GetControlPoints();
-    mesh.triangles.resize(num_triangles);
-    mesh.vertices.resize(num_triangles * 3);
+    aiMesh *ai_mesh = scene->mMeshes[0];
 
-    for (int i = 0; i < num_triangles; ++i)
-    {
-        mesh.triangles[i].indices[0] = i * 3;
-        mesh.triangles[i].indices[1] = i * 3 + 1;
-        mesh.triangles[i].indices[2] = i * 3 + 2;
-        for (unsigned int j = 0; j < 3; ++j)
-        {
-            FbxVector4 fbxVertex = fbxControlPoints[fbxMesh->GetPolygonVertex(i, j)];
-            FbxVector4 fbxNormal;
-            fbxMesh->GetPolygonVertexNormal(i, j, fbxNormal);
-            fbxNormal.Normalize();
-            mesh.vertices[i * 3 + j].position[0] = (float) fbxVertex[0];
-            mesh.vertices[i * 3 + j].position[1] = (float) fbxVertex[1];
-            mesh.vertices[i * 3 + j].position[2] = (float) fbxVertex[2];
-            mesh.vertices[i * 3 + j].normal[0] = (float) fbxNormal[0];
-            mesh.vertices[i * 3 + j].normal[1] = (float) fbxNormal[1];
-            mesh.vertices[i * 3 + j].normal[2] = (float) fbxNormal[2];
-        }
+    // Vertices
+    mesh.vertices.resize(ai_mesh->mNumVertices);
+    for (int i = 0; i < ai_mesh->mNumVertices; ++i) {
+        const aiVector3D &p = ai_mesh->mVertices[i];
+        const aiVector3D &n = ai_mesh->mNormals[i];
+        Peng::Vertex &vertex = mesh.vertices[i];
+        vertex.position[0] = p.x;
+        vertex.position[1] = p.y;
+        vertex.position[2] = p.z;
+        vertex.normal[0] = n.x;
+        vertex.normal[1] = n.y;
+        vertex.normal[2] = n.z;
+    }
+
+    // Triangles
+    mesh.triangles.resize(ai_mesh->mNumFaces);
+    for (int i = 0; i < ai_mesh->mNumFaces; ++i) {
+        const aiFace &face = ai_mesh->mFaces[i];
+        Peng::Triangle &triangle = mesh.triangles[i];
+        triangle.indices[0] = face.mIndices[0];
+        triangle.indices[1] = face.mIndices[1];
+        triangle.indices[2] = face.mIndices[2];
     }
 
     ofstream out(output);
     out << mesh;
     out.close();
-    
-    manager->Destroy();
     
     return EXIT_SUCCESS;
 }

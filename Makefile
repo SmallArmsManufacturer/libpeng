@@ -1,8 +1,8 @@
 EXECUTABLE := peng
 LIBRARY    := libpeng.a
 VPATH      += src lib
-CXXFLAGS   += -Wall -Werror -I include
-LDFLAGS    += -Wall -Werror -lfbxsdk-2013.3
+CXXFLAGS   += -Wall -Werror $(shell pkg-config --cflags assimp) -I include
+LDFLAGS    += -Wall -Werror $(shell pkg-config --cflags --libs assimp)
 
 .PHONY: all clean
 
