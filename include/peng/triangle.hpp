@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstdint>
 #include <iosfwd>
 
 namespace Peng

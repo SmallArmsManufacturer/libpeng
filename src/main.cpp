@@ -82,10 +82,12 @@ int main(int argc, const char *argv[])
             FbxVector4 fbxNormal;
             fbxMesh->GetPolygonVertexNormal(i, j, fbxNormal);
             fbxNormal.Normalize();
-            mesh.vertices[i * 3 + j] = {
-                { (float) fbxVertex[0], (float) fbxVertex[1], (float) fbxVertex[2] },
-                { (float) fbxNormal[0], (float) fbxNormal[1], (float) fbxNormal[2] }
-            };
+            mesh.vertices[i * 3 + j].position[0] = (float) fbxVertex[0];
+            mesh.vertices[i * 3 + j].position[1] = (float) fbxVertex[1];
+            mesh.vertices[i * 3 + j].position[2] = (float) fbxVertex[2];
+            mesh.vertices[i * 3 + j].normal[0] = (float) fbxNormal[0];
+            mesh.vertices[i * 3 + j].normal[1] = (float) fbxNormal[1];
+            mesh.vertices[i * 3 + j].normal[2] = (float) fbxNormal[2];
         }
     }
 

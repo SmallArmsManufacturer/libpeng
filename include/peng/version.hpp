@@ -1,7 +1,5 @@
 #pragma once
 
-#include <cstdint>
-
 namespace Peng
 {
 	typedef uint32_t magic_number_t;

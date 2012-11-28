@@ -1,8 +1,8 @@
 EXECUTABLE := peng
 LIBRARY    := libpeng.a
 VPATH      += src lib
-CXXFLAGS   += -Wall -Werror -std=c++11 -stdlib=libc++ -I include
-LDFLAGS    += -Wall -Werror -std=c++11 -stdlib=libc++ -lfbxsdk-2013.3
+CXXFLAGS   += -Wall -Werror -I include
+LDFLAGS    += -Wall -Werror -lfbxsdk-2013.3
 
 .PHONY: all clean
 
